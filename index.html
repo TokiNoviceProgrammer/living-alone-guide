@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="大学院生の一人暮らし検討用。月間収支シミュレーター、初期費用の合計試算、物件探し、家具家電、ライフライン、チェックリスト。">
+<style>
+  :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>一人暮らし賃貸ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: 'var(--bg)', surface: 'var(--surface)', surface2: 'var(--surface2)',
+          ink: 'var(--ink)', mute: 'var(--mute)', line: 'var(--line)',
+          accent: 'var(--accent)', ok: 'var(--ok)', warn: 'var(--warn)', ng: 'var(--ng)'
+        },
+        fontFamily: {
+          display: ['var(--font-display)'], body: ['var(--font-body)'], mono: ['var(--font-mono)']
+        }
+      }
+    }
+  };
+</script>
+<style>
+  /* Layout: ヘッダー → 固定タブバー → 章ごとのパネル。収支はシミュレーター、他はカードとタイムライン。 */
+  :root {
+    --bg: #eef1f7;
+    --surface: #ffffff;
+    --surface2: #f3f5fb;
+    --ink: #10172e;
+    --mute: #55607e;
+    --line: #d9dfec;
+    --accent: #1b3fa0;
+    --accent-soft: #e3eafb;
+    --accent-ink: #ffffff;
+    --bar: #a3b0d6;
+    --ok: #17734b;   --ok-bg: #ddf3e8;
+    --warn: #86560a; --warn-bg: #fbebc8;
+    --ng: #b3261e;   --ng-bg: #fbe0dd;
+    --font-display: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    --font-body: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c1121; --surface: #141b30; --surface2: #1a2340; --ink: #e7ebf7; --mute: #9aa6c6;
+      --line: #273152; --accent: #86a1ff; --accent-soft: #1f2c5a; --accent-ink: #0c1121; --bar: #3b4b82;
+      --ok: #6fd9a3; --ok-bg: #123626; --warn: #f1c46b; --warn-bg: #3a2c0e; --ng: #ff9a90; --ng-bg: #40191a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c1121; --surface: #141b30; --surface2: #1a2340; --ink: #e7ebf7; --mute: #9aa6c6;
+    --line: #273152; --accent: #86a1ff; --accent-soft: #1f2c5a; --accent-ink: #0c1121; --bar: #3b4b82;
+    --ok: #6fd9a3; --ok-bg: #123626; --warn: #f1c46b; --warn-bg: #3a2c0e; --ng: #ff9a90; --ng-bg: #40191a;
+    color-scheme: dark;
+  }
+
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.75; }
+  h1, h2, h3, p, ul, ol { margin: 0; }
+  ul, ol { padding: 0; list-style: none; }
+  button { font: inherit; color: inherit; }
+
+  .wrap { max-width: 60rem; margin-inline: auto; padding-inline: 1rem; }
+  @media (min-width: 640px) { .wrap { padding-inline: 1.5rem; } }
+  .stack { display: grid; gap: 1.25rem; }
+  .grid2 { display: grid; gap: 1rem; align-items: start; }
+  @media (min-width: 900px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  .cards { display: grid; gap: .75rem; }
+  @media (min-width: 640px) { .cards { grid-template-columns: 1fr 1fr; } }
+  .stack > *, .grid2 > *, .cards > * { min-width: 0; }
+
+  /* header */
+  .eyebrow { font-size: .75rem; letter-spacing: .08em; font-weight: 700; color: var(--accent); }
+  h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(1.6rem, 5.5vw, 2.25rem); line-height: 1.25; text-wrap: balance; }
+  .lead { color: var(--mute); font-size: .9rem; }
+  .facts { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .fact { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 700; padding: .4rem .7rem; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+  .fact .ic { width: 16px; height: 16px; color: var(--accent); }
+
+  /* tabs */
+  .tabbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; gap: .375rem; overflow-x: auto; padding-block: .5rem; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; display: inline-flex; align-items: center; gap: .4rem; border: 1px solid transparent; background: transparent; border-radius: 10px; padding: .5rem .8rem; font-size: .85rem; font-weight: 700; color: var(--mute); cursor: pointer; white-space: nowrap; }
+  .tab:hover { background: var(--surface2); color: var(--ink); }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+  .tab:focus-visible, .seg input:focus-visible + span, .chk input:focus-visible, .btn:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .panel { padding-block: 1.25rem 3rem; }
+
+  /* shared parts */
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.125rem; }
+  .h-sec { font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; line-height: 1.35; text-wrap: balance; }
+  .h-card { font-family: var(--font-display); font-weight: 700; font-size: 1rem; line-height: 1.4; }
+  .sub { font-size: .72rem; font-weight: 700; letter-spacing: .06em; color: var(--mute); }
+  .small { font-size: .82rem; color: var(--mute); line-height: 1.65; }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .ico { width: 2.25rem; height: 2.25rem; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+  .badge { display: inline-flex; align-items: center; gap: .25rem; font-size: .72rem; font-weight: 700; line-height: 1; padding: .32rem .6rem; border-radius: 999px; white-space: nowrap; letter-spacing: .02em; }
+  .badge .ic { width: 12px; height: 12px; stroke-width: 2.4; }
+  .b-ok { background: var(--ok-bg); color: var(--ok); }
+  .b-warn { background: var(--warn-bg); color: var(--warn); }
+  .b-ng { background: var(--ng-bg); color: var(--ng); }
+  .b-info { background: var(--accent-soft); color: var(--accent); }
+  .b-mute { background: var(--surface2); color: var(--mute); border: 1px solid var(--line); }
+  .item { display: flex; gap: .75rem; align-items: flex-start; }
+  .item > div { min-width: 0; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+  .row-sb { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+  .callout { border-radius: 14px; padding: 1rem 1.125rem; background: var(--accent-soft); color: var(--ink); border: 1px solid var(--line); }
+  .callout.warn { background: var(--warn-bg); }
+  .callout.ok { background: var(--ok-bg); }
+  .callout.ng { background: var(--ng-bg); }
+
+  /* range bars */
+  .rb { position: relative; height: 10px; border-radius: 999px; background: var(--surface2); border: 1px solid var(--line); }
+  .rb-seg { position: absolute; top: -1px; bottom: -1px; border-radius: 999px; background: var(--accent); min-width: 10px; }
+  .rb-seg.mute { background: var(--bar); }
+  .rb-seg.ng { background: var(--ng); }
+  .axis { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: .68rem; color: var(--mute); margin-top: .3rem; }
+
+  /* simulator */
+  .tile-row { display: grid; gap: .5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tile { background: var(--surface2); border-radius: 10px; padding: .65rem .75rem; min-width: 0; }
+  .tile .v { font-family: var(--font-mono); font-weight: 600; font-size: 1.15rem; line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .tile .u { font-size: .7rem; color: var(--mute); }
+  @media (max-width: 420px) { .tile .v { font-size: 1rem; } }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface2); }
+  .seg label { cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: block; padding: .4rem .9rem; font-size: .85rem; font-weight: 700; color: var(--mute); }
+  .seg input:checked + span { background: var(--accent); color: var(--accent-ink); }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .exp { display: grid; gap: .35rem; padding-block: .7rem; border-top: 1px solid var(--line); }
+  .exp:first-child { border-top: 0; padding-top: 0; }
+  .bar-track { height: 8px; border-radius: 999px; background: var(--surface2); }
+  .bar { height: 100%; border-radius: 999px; background: var(--bar); transition: width .25s ease; }
+  .bar.hot { background: var(--accent); }
+  .tbl-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 22rem; }
+  th, td { text-align: left; padding: .65rem .5rem; border-top: 1px solid var(--line); font-size: .85rem; vertical-align: middle; }
+  th { font-size: .72rem; color: var(--mute); letter-spacing: .05em; border-top: 0; font-weight: 700; }
+  td .num { margin-right: .4rem; }
+
+  /* timeline */
+  .tl { display: grid; gap: 1rem; margin-left: .5rem; padding-left: 1.25rem; border-left: 2px solid var(--line); }
+  .tl > li { position: relative; }
+  .tl > li::before { content: ""; position: absolute; left: calc(-1.25rem - 6px); top: .6rem; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--bg); }
+
+  /* checklist */
+  .chk { display: flex; gap: .7rem; align-items: flex-start; padding: .6rem .25rem; border-top: 1px solid var(--line); cursor: pointer; }
+  .chk:first-of-type { border-top: 0; }
+  .chk input { width: 18px; height: 18px; margin-top: .25rem; accent-color: var(--accent); flex: none; }
+  .chk span { min-width: 0; }
+  .chk input:checked + span { color: var(--mute); }
+  .btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: .45rem .8rem; font-size: .82rem; font-weight: 700; cursor: pointer; color: var(--ink); }
+  .btn:hover { background: var(--surface2); }
+  .meter { height: 6px; border-radius: 999px; background: var(--surface2); border: 1px solid var(--line); overflow: hidden; }
+  .meter > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
+  @media (prefers-reduced-motion: reduce) { .bar, .meter > i { transition: none; } }
+
+  /* steppers, switches, sticky summaries */
+  .stp { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--surface2); overflow: hidden; flex: none; }
+  .stp-b { width: 2.5rem; height: 2.5rem; border: 0; background: transparent; color: var(--accent); font-size: 1.15rem; font-weight: 700; line-height: 1; cursor: pointer; }
+  .stp-b:hover:not(:disabled) { background: var(--accent-soft); }
+  .stp-b:focus-visible, .stp-i:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .stp-i { width: 4.25rem; height: 2.5rem; border: 0; border-inline: 1px solid var(--line); border-radius: 0; text-align: center; background: var(--surface); color: var(--ink); font-size: 1rem; -moz-appearance: textfield; appearance: textfield; }
+  .stp-i::-webkit-outer-spin-button, .stp-i::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .stp-b:disabled, .stp-i:disabled { opacity: .4; cursor: not-allowed; }
+  .sw { position: relative; display: inline-block; width: 2.5rem; height: 1.45rem; flex: none; }
+  .sw input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+  .trk { display: block; width: 100%; height: 100%; border-radius: 999px; background: var(--bar); transition: background .2s; }
+  .trk::after { content: ""; position: absolute; top: 2px; left: 2px; width: calc(1.45rem - 4px); height: calc(1.45rem - 4px); border-radius: 50%; background: var(--surface); transition: transform .2s; }
+  .sw input:checked + .trk { background: var(--accent); }
+  .sw input:checked + .trk::after { transform: translateX(1.05rem); }
+  .sw input:focus-visible + .trk { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .exp.off .lbl, .exp.off .small { opacity: .55; }
+  .tile-row.four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 640px) { .tile-row.four { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .sumbar { position: sticky; bottom: calc(env(safe-area-inset-bottom, 0px) + .5rem); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: .6rem .9rem; box-shadow: 0 6px 20px rgba(0, 0, 0, .14); }
+  @media (prefers-reduced-motion: reduce) { .trk, .trk::after { transition: none; } }
+</style>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-yen" viewBox="0 0 24 24"><path d="M6 4l6 8 6-8M12 12v8M7 14h10M7 17.5h10"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 01-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-6 1-9z"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0120 0M5 12.5a10.5 10.5 0 0114 0M8.5 16a5 5 0 017 0"/><circle cx="12" cy="19" r="1"/></symbol>
+    <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h7a3 3 0 000-6H9a3 3 0 010-6h7"/></symbol>
+    <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M6 3v7a2 2 0 002 2v9M10 3v7a2 2 0 01-2 2M17 3c-2 2-2 6 0 8v10"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/></symbol>
+    <symbol id="i-sofa" viewBox="0 0 24 24"><path d="M5 11V8a2 2 0 012-2h10a2 2 0 012 2v3M3 13a2 2 0 014 0v2h10v-2a2 2 0 014 0v5H3zM5 18v2M19 18v2"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></symbol>
+    <symbol id="i-droplet" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+    <symbol id="i-mountain" viewBox="0 0 24 24"><path d="M3 20l6-11 4 6 3-4 5 9z"/></symbol>
+    <symbol id="i-washer" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="14" r="4"/><path d="M8 6.5h1"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M7 8h10v3a5 5 0 01-10 0zM12 16v5"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM17 9l4 6M21 9l-4 6"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M5 19L19 5"/><circle cx="7" cy="7" r="2"/><circle cx="17" cy="17" r="2"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 7l12-3v3M16 13.5h2"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.5M18 14.5c2 .7 3 2.7 3 5.5"/></symbol>
+    <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 18V6M3 14h18v4M21 14v-2a3 3 0 00-3-3h-7v5"/><circle cx="7" cy="11" r="1.5"/></symbol>
+  </defs>
+</svg>
+
+<header class="wrap" style="padding-block: 1.5rem 1rem;">
+  <div class="stack" style="gap: .9rem;">
+    <div class="stack" style="gap: .5rem;">
+      <p class="eyebrow">大学院生の一人暮らし検討用</p>
+      <h1>一人暮らし賃貸ガイド</h1>
+      <p class="lead">賃貸契約から入居準備までの判断基準と、月々のお金の運用方針をまとめた保存版です。</p>
+    </div>
+    <div class="facts">
+      <span class="fact"><svg class="ic"><use href="#i-yen"/></svg>家賃上限 7.0万円（管理費込）</span>
+      <span class="fact"><svg class="ic"><use href="#i-flame"/></svg>都市ガス必須</span>
+      <span class="fact"><svg class="ic"><use href="#i-sofa"/></svg>家具家電の目標 0〜8万円</span>
+    </div>
+    <button class="btn" type="button" id="go-check" style="justify-self: start; display: inline-flex; align-items: center; gap: .6rem;">
+      <svg class="ic" style="width:16px;height:16px"><use href="#i-check"/></svg>
+      チェックリスト <span class="num" id="prog-text">0 / 0</span>
+      <span class="meter" style="width: 5rem;"><i id="prog-bar-head"></i></span>
+    </button>
+  </div>
+</header>
+
+<div class="tabbar">
+  <div class="wrap">
+    <div class="tabs" role="tablist" aria-label="ガイドの章">
+      <button class="tab" role="tab" id="t-overview" aria-controls="p-overview" aria-selected="true" data-tab="overview"><svg class="ic"><use href="#i-wallet"/></svg>収支</button>
+      <button class="tab" role="tab" id="t-search" aria-controls="p-search" aria-selected="false" data-tab="search"><svg class="ic"><use href="#i-home"/></svg>物件探し</button>
+      <button class="tab" role="tab" id="t-initial" aria-controls="p-initial" aria-selected="false" data-tab="initial"><svg class="ic"><use href="#i-tag"/></svg>初期費用</button>
+      <button class="tab" role="tab" id="t-furniture" aria-controls="p-furniture" aria-selected="false" data-tab="furniture"><svg class="ic"><use href="#i-sofa"/></svg>家具家電</button>
+      <button class="tab" role="tab" id="t-lifeline" aria-controls="p-lifeline" aria-selected="false" data-tab="lifeline"><svg class="ic"><use href="#i-plug"/></svg>ライフライン</button>
+      <button class="tab" role="tab" id="t-checklist" aria-controls="p-checklist" aria-selected="false" data-tab="checklist"><svg class="ic"><use href="#i-list"/></svg>チェック</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- 収支 -->
+  <section class="panel" id="p-overview" role="tabpanel" aria-labelledby="t-overview">
+    <div class="stack">
+      <div class="row-sb" style="align-items:flex-end;">
+        <div class="stack" style="gap:.4rem;">
+          <h2 class="h-sec">月間収支シミュレーター</h2>
+          <p class="lead">収入も支出も金額を増減できます。支出はスイッチで入れたり外したりできます。</p>
+        </div>
+        <button class="btn" type="button" id="sim-reset">初期値に戻す</button>
+      </div>
+
+      <div class="grid2">
+        <div class="stack" style="gap:1rem;">
+          <div class="card stack" style="gap:.9rem;">
+            <div class="row-sb"><h3 class="h-card">月収入</h3><span class="sub">単位：万円</span></div>
+            <div class="stack" id="inc-list" style="gap:.75rem;"></div>
+            <div class="row-sb" style="border-top:1px solid var(--line); padding-top:.75rem;"><strong>月収入 合計</strong><span class="num" id="income-total" style="font-size:1.1rem;">18.5</span></div>
+          </div>
+
+          <div class="card stack" style="gap:.9rem;">
+            <div class="row-sb"><h3 class="h-card">月間収支</h3><span class="badge" id="status-badge">—</span></div>
+            <div class="tile-row">
+              <div class="tile"><div class="sub">収入</div><div class="v" id="t-income">18.5</div><div class="u">万円</div></div>
+              <div class="tile"><div class="sub">支出</div><div class="v" id="t-expense">18.1</div><div class="u">万円</div></div>
+              <div class="tile"><div class="sub">収支</div><div class="v" id="t-balance">+0.4</div><div class="u">万円</div></div>
+            </div>
+            <div class="callout" id="gap-box" style="padding:.75rem .9rem;">
+              <p id="gap-msg" style="font-weight:700;">—</p>
+            </div>
+            <p class="small">判定の目安：収支が ±0.3万円未満なら「ほぼ均衡」としています（本ページ独自の基準）。</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="row-sb" style="margin-bottom:.9rem;"><h3 class="h-card">月支出の内訳</h3><span class="sub">単位：万円</span></div>
+          <ul id="exp-list"></ul>
+        </div>
+      </div>
+
+      <div class="card stack" style="gap:.75rem;">
+        <div class="row-sb"><h3 class="h-card">シナリオ早見表（家賃 × 仕送り）</h3><span class="badge b-mute">試算</span></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th scope="col">家賃（管理費は別）</th><th scope="col">仕送り 7万円</th><th scope="col">仕送り 8万円</th><th scope="col">仕送り 9万円</th></tr></thead>
+            <tbody id="scenario"></tbody>
+          </table>
+        </div>
+        <p class="small">家賃以外は上の現在値で計算しています（単位：万円）。</p>
+      </div>
+
+      <div class="callout">
+        <div class="item">
+          <span class="ico"><svg class="ic"><use href="#i-alert"/></svg></span>
+          <div class="stack" style="gap:.35rem;">
+            <h3 class="h-card">初期値での収支</h3>
+            <p>仕送り8.5万円・家賃7.0万円・管理費0.3万円のとき、0.4万円の余裕があります。仕送り7万円なら1.1万円不足、8万円なら0.1万円不足（ほぼ均衡）です。</p>
+            <p class="small">家賃と管理費の合計は7.3万円で、物件探しの上限（管理費込み7.0万円）を0.3万円超えています。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sumbar" aria-live="polite">
+        <span class="row" style="gap:.4rem 1rem;">
+          <span><span class="sub">収入</span> <span class="num" id="sb-income">18.5</span></span>
+          <span><span class="sub">支出</span> <span class="num" id="sb-expense">18.1</span></span>
+          <span><span class="sub">収支</span> <span class="num" id="sb-balance" style="font-size:1.05rem;">+0.4</span></span>
+        </span>
+        <span class="badge" id="sb-badge">—</span>
+      </div>
+    </div>
+  </section>
+
+<!-- 物件探し -->
+  <section class="panel" id="p-search" role="tabpanel" aria-labelledby="t-search" hidden>
+    <div class="stack">
+      <div class="stack" style="gap:.4rem;">
+        <h2 class="h-sec">物件探し・内見のチェックポイント</h2>
+        <p class="lead">日吉・元住吉エリアで内見するときの判断基準です。</p>
+      </div>
+      <div class="cards">
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-yen"/></svg></span>
+          <div><div class="row"><h3 class="h-card">家賃上限</h3><span class="badge b-info">上限</span></div>
+          <p>家賃と管理費の合計で <span class="num">7.0万円</span> 以内。収支シミュレーターでは家賃と管理費を分けて入力できます。</p></div>
+        </article>
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-flame"/></svg></span>
+          <div><div class="row"><h3 class="h-card">ガス種別</h3><span class="badge b-ok"><svg class="ic"><use href="#i-check"/></svg>都市ガス必須</span><span class="badge b-ng"><svg class="ic"><use href="#i-x"/></svg>プロパンNG</span></div>
+          <p>プロパンガスは月 <span class="num">2,000〜3,000円</span> 高くなります。</p></div>
+        </article>
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-mountain"/></svg></span>
+          <div><div class="row"><h3 class="h-card">アクセス・立地</h3><span class="badge b-warn">現地確認</span></div>
+          <p>矢上キャンパス周辺の「急坂」を避けるルートがあるか確認します。徒歩・自転車で通学できるかも見ます。</p></div>
+        </article>
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-washer"/></svg></span>
+          <div><div class="row"><h3 class="h-card">洗濯機置き場</h3><span class="badge b-warn">確認</span></div>
+          <p>室内に置き場があること。</p></div>
+        </article>
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-wifi"/></svg></span>
+          <div><div class="row"><h3 class="h-card">光回線</h3><span class="badge b-warn">確認</span></div>
+          <p>光回線を導入できるか。個別Wi-Fiは月 <span class="num">0.45万円</span> を見込んでいます。</p></div>
+        </article>
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-sound"/></svg></span>
+          <div><div class="row"><h3 class="h-card">防音性</h3><span class="badge b-warn">確認</span></div>
+          <p>壁の構造を見ます。夜間の研究作業に対応できる静けさが目安です。</p></div>
+        </article>
+      </div>
+      <div class="callout">
+        <div class="item">
+          <span class="ico"><svg class="ic"><use href="#i-calendar"/></svg></span>
+          <div class="stack" style="gap:.35rem;">
+            <div class="row"><h3 class="h-card">秋の閑散期は条件交渉のチャンス</h3><span class="badge b-info">交渉</span></div>
+            <p>即決・年内入居を条件に、次の2点を打診します。</p>
+            <div class="row"><span class="badge b-ok">礼金ゼロ</span><span class="badge b-ok">フリーレント（1ヶ月無料）</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 初期費用 -->
+  <section class="panel" id="p-initial" role="tabpanel" aria-labelledby="t-initial" hidden>
+    <div class="stack">
+      <div class="row-sb" style="align-items:flex-end;">
+        <div class="stack" style="gap:.4rem;">
+          <h2 class="h-sec">初期費用の合計を試算</h2>
+          <p class="lead">見積書の項目を金額で入力し、スイッチで入れたり外したりすると、合計がその場で出ます。任意オプションは初期状態でOFFです。</p>
+        </div>
+        <button class="btn" type="button" id="init-reset">初期値に戻す</button>
+      </div>
+
+      <div class="card stack" style="gap:.9rem;">
+        <div class="row-sb"><h3 class="h-card">初期費用の合計</h3><span class="badge b-mute">試算</span></div>
+        <p><span class="num" id="init-total" style="font-size:1.8rem; line-height:1.2;">—</span> <span class="small">万円</span></p>
+        <div class="tile-row four">
+          <div class="tile"><div class="sub">基本項目</div><div class="v" id="it-basic">0</div><div class="u">万円</div></div>
+          <div class="tile"><div class="sub">任意オプション</div><div class="v" id="it-opt">—</div><div class="u">万円</div></div>
+          <div class="tile"><div class="sub">火災保険</div><div class="v" id="it-fire">—</div><div class="u">万円</div></div>
+          <div class="tile"><div class="sub">家具・家電</div><div class="v" id="it-furn">—</div><div class="u">万円</div></div>
+        </div>
+        <p class="small">基本項目は、家賃7万円想定の一般的な金額（敷金7・礼金7・仲介手数料7.7・前家賃7.3・保証会社利用料3.65・鍵交換1.5万円）を入れた仮の値です。見積書の値に直してください。</p>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="row-sb" style="margin-bottom:.3rem;"><h3 class="h-card">基本項目</h3><span class="sub">単位：万円</span></div>
+          <p class="small" style="margin-bottom:.6rem;">見積書の金額を入力します。初期値は家賃7万円・管理費0.3万円を想定した一般的な金額です。</p>
+          <ul id="basic-list"></ul>
+        </div>
+        <div class="stack" style="gap:1rem;">
+          <div class="card">
+            <div class="row-sb" style="margin-bottom:.3rem;"><h3 class="h-card">任意オプションと火災保険</h3><span class="sub">単位：万円</span></div>
+            <p class="small" style="margin-bottom:.6rem;">任意オプションは必要なときだけONにします。金額は見積書の値に直してください（初期値は相場の中間）。火災保険は初期状態でONです。</p>
+            <ul id="opt-list"></ul>
+          </div>
+          <div class="card">
+            <div class="row-sb" style="margin-bottom:.3rem;"><h3 class="h-card">家具・家電・日用品</h3><span class="sub">単位：万円</span></div>
+            <p class="small" style="margin-bottom:.6rem;">冷蔵庫・洗濯機・電子レンジなどは購入、ベッド・チェアなどは持ち込みの想定です。価格は私が置いた仮の値なので、実際の価格に直してください。</p>
+            <ul id="furn-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack" style="gap:.6rem;">
+        <h3 class="h-card">外すかどうかの考え方</h3>
+        <div class="cards">
+          <article class="card item">
+            <span class="badge b-ng" style="margin-top:.2rem;"><svg class="ic"><use href="#i-x"/></svg>外す</span>
+            <div><h3 class="h-card">消毒施工費・室内抗菌</h3><p class="small">ドラッグストアのバルサンで十分です。</p></div>
+          </article>
+          <article class="card item">
+            <span class="badge b-ng" style="margin-top:.2rem;"><svg class="ic"><use href="#i-x"/></svg>外す</span>
+            <div><h3 class="h-card">害虫駆除・防虫施工</h3><p class="small">不要です。</p></div>
+          </article>
+          <article class="card item">
+            <span class="badge b-ng" style="margin-top:.2rem;"><svg class="ic"><use href="#i-x"/></svg>外す</span>
+            <div><h3 class="h-card">24時間サポート・安心入居</h3><p class="small">火災保険の緊急駆けつけと重複します。ただし、保険にその補償が付いているか先に確認します。</p></div>
+          </article>
+          <article class="card item">
+            <span class="badge b-ok" style="margin-top:.2rem;"><svg class="ic"><use href="#i-check"/></svg>そのまま</span>
+            <div><h3 class="h-card">火災保険</h3><p class="small">不動産屋の提示が相場内（2年で1.5〜2.0万円）なら、手間を考えてそのまま契約します。ネット保険へ切り替える必要はありません。</p></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="sumbar" aria-live="polite">
+        <span class="row" style="gap:.4rem 1rem;"><span class="sub">初期費用 合計</span><span class="num" id="sb2-total" style="font-size:1.05rem;">—</span><span class="small">万円</span></span>
+        <span class="badge b-mute">試算</span>
+      </div>
+    </div>
+  </section>
+
+<!-- 家具家電 -->
+  <section class="panel" id="p-furniture" role="tabpanel" aria-labelledby="t-furniture" hidden>
+    <div class="stack">
+      <div class="stack" style="gap:.4rem;">
+        <h2 class="h-sec">家具・家電・日用品の初期購入費</h2>
+        <p class="lead">目標は0〜8万円です。新品で一から揃えるより大きく抑えられます。</p>
+      </div>
+
+      <div class="cards">
+        <article class="card stack" style="gap:.6rem;">
+          <div class="row-sb"><h3 class="h-card">購入するもの</h3><span class="badge b-info">初期費用タブの試算に入っています</span></div>
+          <p>一人暮らし用の冷蔵庫、洗濯機、電子レンジ、炊飯器、掃除機、調理器具・食器、日用品、物干し・ハンガー</p>
+          <p class="small">この合計は約11.1万円で、目標の8万円を上回ります。炊飯器や調理器具などを家から持ち込めば、目標に近づきます。</p>
+        </article>
+        <article class="card stack" style="gap:.6rem;">
+          <div class="row-sb"><h3 class="h-card">持ち込むもの</h3><span class="badge b-ok">購入しない</span></div>
+          <p>ベッド・寝具、チェア、デスク、カーテン</p>
+          <p class="small">照明とエアコンは物件の備え付けを確認し、なければ初期費用タブでONにします。</p>
+        </article>
+      </div>
+
+      <div class="card stack" style="gap:1rem;">
+        <h3 class="h-card">初期購入費の目安</h3>
+        <div class="stack" style="gap:.35rem;">
+          <div class="row-sb"><span class="row"><span class="badge b-mute">基準</span>新品で全て揃える</span><span class="num">15〜20万円</span></div>
+          <div class="rb"><div class="rb-seg mute" style="left:75%;width:25%"></div></div>
+        </div>
+        <div class="stack" style="gap:.35rem;">
+          <div class="row-sb"><span class="row"><span class="badge b-ok">目標</span>工夫して揃える</span><span class="num">0〜8万円</span></div>
+          <div class="rb"><div class="rb-seg" style="left:0%;width:40%"></div></div>
+        </div>
+        <div class="axis" style="margin-top:-.4rem;"><span>0</span><span>5</span><span>10</span><span>15</span><span>20万円</span></div>
+      </div>
+
+      <div class="stack" style="gap:.6rem;">
+        <h3 class="h-card">圧縮の方法（優先順）</h3>
+        <div class="cards">
+          <article class="card item">
+            <span class="ico"><svg class="ic"><use href="#i-box"/></svg></span>
+            <div><div class="row"><h3 class="h-card">実家から持ち込む</h3><span class="badge b-ok">まず検討</span></div>
+            <p class="small">布団、デスク、チェア、電子レンジ、カーテンなど。</p></div>
+          </article>
+          <article class="card item">
+            <span class="ico"><svg class="ic"><use href="#i-users"/></svg></span>
+            <div><div class="row"><h3 class="h-card">先輩・後輩から譲り受ける</h3></div>
+            <p class="small">ジモティーなども使えます。</p></div>
+          </article>
+          <article class="card item" style="grid-column: 1 / -1;">
+            <span class="ico"><svg class="ic"><use href="#i-plug"/></svg></span>
+            <div><div class="row"><h3 class="h-card">新生活3点セットを使う</h3><span class="badge b-info">約5万円</span></div>
+            <p class="small">足りない分は家電量販店のセットで補います。</p></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="item">
+          <span class="ico" style="background:transparent; color:var(--warn);"><svg class="ic"><use href="#i-alert"/></svg></span>
+          <div class="stack" style="gap:.35rem;">
+            <div class="row"><h3 class="h-card">家具家電付き物件の注意点</h3><span class="badge b-warn">注意</span></div>
+            <p>家賃が月 <span class="num">5,000〜10,000円</span> 上乗せされます。2年住むと、自分で買ったほうが安くなる場合があります。</p>
+            <p class="small" style="color:var(--ink);">試算：5,000〜10,000円 × 24か月 ＝ 12〜24万円。契約前に2年間の総額で比べてください。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ライフライン -->
+  <section class="panel" id="p-lifeline" role="tabpanel" aria-labelledby="t-lifeline" hidden>
+    <div class="stack">
+      <div class="stack" style="gap:.4rem;">
+        <h2 class="h-sec">ライフラインと家賃支払いの仕組み</h2>
+        <p class="lead">手続きの順序と、お金の運用方針です。</p>
+      </div>
+
+      <ol class="tl">
+        <li>
+          <div class="card stack" style="gap:.5rem;">
+            <div class="row"><span class="badge b-info"><svg class="ic"><use href="#i-calendar"/></svg>物件契約後 〜 入居1週間前</span></div>
+            <div class="row"><h3 class="h-card">電気・ガスを個別に契約</h3></div>
+            <p class="small">東京電力と東京ガスなど、電気とガスを1社にまとめるとセット割と請求一本化のメリットがあります。auでんき等の新電力は追加のセット割メリットが少ないため、無理に選ばず東京電力／東京ガスで十分です。</p>
+          </div>
+        </li>
+        <li>
+          <div class="card stack" style="gap:.5rem;">
+            <div class="row"><span class="badge b-warn"><svg class="ic"><use href="#i-calendar"/></svg>入居当日</span></div>
+            <div class="row"><h3 class="h-card">ガスの開栓に立ち会う</h3></div>
+            <p class="small">立ち会いが必要なのはガスの開栓だけです。</p>
+          </div>
+        </li>
+        <li>
+          <div class="card stack" style="gap:.5rem;">
+            <div class="row"><span class="badge b-mute"><svg class="ic"><use href="#i-calendar"/></svg>毎月</span></div>
+            <div class="row"><h3 class="h-card">家賃は前払いで支払う</h3></div>
+            <p class="small">物件指定の口座引き落とし、またはクレカ決済です。翌月分を当月末に支払います。</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="cards">
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-droplet"/></svg></span>
+          <div><div class="row"><h3 class="h-card">水道</h3><span class="badge b-ok">立ち会い不要</span></div>
+          <p class="small">地域の自治体（横浜市水道局など）と契約します。</p></div>
+        </article>
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-alert"/></svg></span>
+          <div><div class="row"><h3 class="h-card">水道局は住所で変わります</h3><span class="badge b-warn">補足</span></div>
+          <p class="small">日吉は横浜市、元住吉は川崎市の区域です。契約先は物件の所在地で確認してください。</p></div>
+        </article>
+      </div>
+
+      <div class="callout">
+        <div class="item">
+          <span class="ico"><svg class="ic"><use href="#i-wallet"/></svg></span>
+          <div class="stack" style="gap:.35rem;">
+            <div class="row"><h3 class="h-card">管理運用方針</h3><span class="badge b-info">運用</span></div>
+            <p>電気・ガスなどの変動費も含めて、定額の仕送りの中から入居者本人の口座から支払います。金銭管理を自立させるのがねらいです。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- チェックリスト -->
+  <section class="panel" id="p-checklist" role="tabpanel" aria-labelledby="t-checklist" hidden>
+    <div class="stack">
+      <div class="row-sb" style="align-items:flex-end;">
+        <div class="stack" style="gap:.4rem;">
+          <h2 class="h-sec">契約・入居準備チェックリスト</h2>
+          <p class="lead">チェックは、このページを開いている端末のブラウザにだけ保存されます。</p>
+        </div>
+        <button class="btn" type="button" id="reset-checks">すべて外す</button>
+      </div>
+      <div class="card stack" style="gap:.5rem;">
+        <div class="row-sb"><strong>進み具合</strong><span class="num" id="prog-text-2">0 / 0</span></div>
+        <div class="meter"><i id="prog-bar"></i></div>
+      </div>
+      <div class="stack" id="check-groups"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap" style="padding-block: 0 2.5rem;">
+  <p class="small">金額はガイドの前提値です。「試算」と記したものは、前提値から本ページで計算した参考値です。</p>
+</footer>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+  var r2 = function (x) { return Math.round(x * 100) / 100; };
+  var fmt = function (n) { return r2(n).toFixed(2).replace(/0$/, ''); };
+  var signed = function (b) { return b < 0 ? '▲' + fmt(Math.abs(b)) : '+' + fmt(b); };
+  var status = function (b) {
+    if (b >= 0.3) return ['黒字', 'b-ok'];
+    if (b <= -0.3) return ['赤字', 'b-ng'];
+    return ['ほぼ均衡', 'b-warn'];
+  };
+  var icon = function (id) { return '<svg class="ic"><use href="#i-' + id + '"/></svg>'; };
+
+  /* ---------- tabs ---------- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role=tab]'));
+  var ids = tabs.map(function (t) { return t.dataset.tab; });
+  var bar = $('.tabbar');
+  function show(id, push) {
+    tabs.forEach(function (t) {
+      var on = t.dataset.tab === id;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById('p-' + t.dataset.tab).hidden = !on;
+      if (on) { try { t.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) {} }
+    });
+    if (push) { try { history.replaceState(null, '', '#' + id); } catch (e) {} }
+    if (window.scrollY > bar.offsetTop) window.scrollTo({ top: bar.offsetTop });
+  }
+  tabs.forEach(function (t, i) {
+    t.addEventListener('click', function () { show(t.dataset.tab, true); });
+    t.addEventListener('keydown', function (e) {
+      var n = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null;
+      if (n === null) return;
+      n = (n + tabs.length) % tabs.length;
+      tabs[n].focus(); show(ids[n], true); e.preventDefault();
+    });
+  });
+  $('#go-check').addEventListener('click', function () { show('checklist', true); });
+  var h = (location.hash || '').slice(1);
+  show(ids.indexOf(h) >= 0 ? h : 'overview', false);
+
+  /* ---------- simulator ---------- */
+  var man = function (n) { return n < 0 ? '−' + fmt(-n) : fmt(n); };
+  var STEP = { ra: 0.5, remit: 0.5, inx: 0.5, rent: 0.1, mgmt: 0.05, util: 0.05, wifi: 0.05, gym: 0.1, move: 0.05, food: 0.1, other: 0.1, buf: 0.1 };
+  var INC = [
+    { k: 'ra', label: 'RA収入', v: 10, icon: 'wallet' },
+    { k: 'remit', label: '仕送り', v: 8.5, icon: 'users' },
+    { k: 'inx', label: 'その他（アルバイトなど）', v: 0, icon: 'yen' }
+  ];
+  var EXP = [
+    { k: 'rent', label: '家賃', v: 7.0, icon: 'home', note: '家賃＋管理費の上限は7.0万円' },
+    { k: 'mgmt', label: '管理費', v: 0.3, icon: 'key', note: '' },
+    { k: 'util', label: '水道・電気・ガス', v: 1.25, icon: 'bolt', note: '都市ガス必須' },
+    { k: 'wifi', label: '個別Wi-Fi', v: 0.45, icon: 'wifi', note: '' },
+    { k: 'gym', label: 'ジム代', v: 0.8, icon: 'dumbbell', note: '' },
+    { k: 'move', label: '交通費', v: 0.3, icon: 'route', note: '徒歩通学前提' },
+    { k: 'food', label: '食費', v: 4.5, icon: 'utensils', note: '' },
+    { k: 'other', label: 'その他（日用品・娯楽・予備費）', v: 1.5, icon: 'box', note: '' },
+    { k: 'buf', label: '予備費', v: 2.0, icon: 'shield', note: '' }
+  ];
+  var RENT_LIMIT = 7.0, BAR_MIN_MAX = 8;
+  var val = {}, on = {};
+  function resetSim() {
+    val = {}; on = {};
+    INC.forEach(function (e) { val[e.k] = e.v; });
+    EXP.forEach(function (e) { val[e.k] = e.v; on[e.k] = true; });
+  }
+  resetSim();
+
+  /* initial costs: state */
+  var BASIC = [
+    { k: 'dep', label: '敷金', v: 7.0, sign: 1, note: '家賃1か月分の想定' },
+    { k: 'rei', label: '礼金', v: 7.0, sign: 1, note: '家賃1か月分の想定・交渉でゼロにできる場合あり' },
+    { k: 'fee', label: '仲介手数料（税込）', v: 7.7, sign: 1, note: '家賃1.1か月分の想定' },
+    { k: 'pre', label: '前家賃（家賃＋管理費）', v: 7.3, sign: 1, note: '翌月分の前払い' },
+    { k: 'gar', label: '保証会社利用料（初回）', v: 3.65, sign: 1, note: '家賃＋管理費の50%の想定（相場は30〜100%）。更新時に年1万円前後かかる場合あり' },
+    { k: 'fr', label: 'フリーレントの値引き', v: 0, sign: -1, note: '1か月無料なら家賃分を入力（合計から引きます）' },
+    { k: 'misc', label: '鍵交換・その他', v: 1.5, sign: 1, note: '' }
+  ];
+  var OPT = [
+    { k: 'o1', label: '消毒施工費・室内抗菌', note: '外す推奨・相場 1.5〜2万円' },
+    { k: 'o2', label: '害虫駆除・防虫施工', note: '外す推奨・相場 1.5〜2万円' },
+    { k: 'o3', label: '24時間サポート・安心入居', note: '外す推奨・相場 1.0〜1.6万円' },
+    { k: 'fire', label: '火災保険（2年）', note: 'そのままOK・相場 1.5〜2.0万円' }
+  ];
+  var FURN = [
+    { k: 'g_fridge', label: '冷蔵庫（一人暮らし用）', v: 3.0, buy: true, note: '購入・150L前後の想定' },
+    { k: 'g_wash', label: '洗濯機', v: 3.5, buy: true, note: '購入・縦型5kg前後の想定' },
+    { k: 'g_mw', label: '電子レンジ', v: 1.0, buy: true, note: '購入' },
+    { k: 'g_rice', label: '炊飯器', v: 0.8, buy: true, note: '購入' },
+    { k: 'g_vac', label: '掃除機', v: 0.8, buy: true, note: '購入' },
+    { k: 'g_cook', label: '調理器具・食器セット', v: 1.0, buy: true, note: '鍋・フライパン・包丁・食器など' },
+    { k: 'g_daily', label: '日用品（洗剤・トイレ用品・収納など）', v: 0.7, buy: true, note: '' },
+    { k: 'g_dry', label: '物干し・ハンガー', v: 0.3, buy: true, note: '' },
+    { k: 'g_bed', label: 'ベッド・寝具', v: 2.0, buy: false, note: '持ち込み' },
+    { k: 'g_chair', label: 'チェア', v: 1.0, buy: false, note: '持ち込み' },
+    { k: 'g_desk', label: 'デスク', v: 1.5, buy: false, note: '持ち込み' },
+    { k: 'g_curt', label: 'カーテン', v: 0.5, buy: false, note: '持ち込み' },
+    { k: 'g_light', label: '照明', v: 0.5, buy: false, note: '備え付けがない場合にON' },
+    { k: 'g_ac', label: 'エアコン', v: 5.0, buy: false, note: '備え付けがない場合にON' }
+  ];
+  var CST = { dep: 0.1, rei: 0.1, fee: 0.1, pre: 0.1, fr: 0.1, misc: 0.1, o1: 0.1, o2: 0.1, o3: 0.1, fire: 0.1 };
+  FURN.forEach(function (f) { CST[f.k] = 0.1; });
+  var ic = {}, optOn = {};
+  function resetInit() {
+    ic = { o1: 1.75, o2: 1.75, o3: 1.3, fire: 1.75 };
+    optOn = { o1: false, o2: false, o3: false, fire: true };
+    BASIC.forEach(function (b) { ic[b.k] = b.v; optOn[b.k] = true; });
+    FURN.forEach(function (f) { ic[f.k] = f.v; optOn[f.k] = f.buy; });
+  }
+  resetInit();
+
+  function stepper(attr, k, step, v, label) {
+    var id = (attr === 'data-s' ? 'in-' : 'ci-') + k;
+    return '<div class="stp"><button type="button" class="stp-b" ' + attr + '="' + k + '" data-d="-1" aria-label="' + label + 'を減らす">−</button>' +
+      '<input class="stp-i num" ' + attr + '="' + k + '" id="' + id + '" type="number" inputmode="decimal" min="0" step="' + step + '" value="' + fmt(v) + '" aria-label="' + label + '">' +
+      '<button type="button" class="stp-b" ' + attr + '="' + k + '" data-d="1" aria-label="' + label + 'を増やす">＋</button></div>';
+  }
+  function swRow(attr, idp, k, label, note, stepperHtml, rowAttr) {
+    return '<li class="exp" ' + rowAttr + '="' + k + '"><div class="row-sb" style="flex-wrap:wrap;">' +
+      '<span class="row" style="flex-wrap:nowrap; min-width:0;"><label class="sw"><input type="checkbox" ' + attr + '="' + k + '" id="' + idp + k + '" checked aria-label="' + label + 'を含める"><span class="trk"></span></label>' +
+      '<span class="lbl" style="min-width:0;"><span>' + label + '</span>' + (note ? '<span class="small" style="display:block;line-height:1.4;">' + note + '</span>' : '') + '</span></span>' +
+      stepperHtml + '</div></li>';
+  }
+
+  $('#inc-list').innerHTML = INC.map(function (r) {
+    return '<div class="row-sb" style="flex-wrap:wrap;"><span class="row" style="flex-wrap:nowrap;"><span style="color:var(--accent)">' + icon(r.icon) + '</span>' + r.label + '</span>' +
+      stepper('data-s', r.k, STEP[r.k], val[r.k], r.label) + '</div>';
+  }).join('');
+
+  $('#exp-list').innerHTML = EXP.map(function (e) {
+    var hot = e.k === 'rent';
+    return '<li class="exp" data-row="' + e.k + '"><div class="row-sb" style="flex-wrap:wrap;">' +
+      '<span class="row" style="flex-wrap:nowrap; min-width:0;"><label class="sw"><input type="checkbox" data-sw="' + e.k + '" id="sw-' + e.k + '" checked aria-label="' + e.label + 'を支出に含める"><span class="trk"></span></label>' +
+      '<span style="color:var(--accent)">' + icon(e.icon) + '</span>' +
+      '<span class="lbl" style="min-width:0;"><span>' + e.label + '</span>' + (e.note ? '<span class="small" style="display:block;line-height:1.4;">' + e.note + '</span>' : '') + '</span></span>' +
+      stepper('data-s', e.k, STEP[e.k], e.v, e.label) + '</div>' +
+      '<div class="bar-track"><div class="bar' + (hot ? ' hot' : '') + '" data-bar="' + e.k + '" style="width:0"></div></div>' +
+      (hot ? '<div class="row"><span class="badge" id="rent-badge">—</span></div>' : '') + '</li>';
+  }).join('') +
+  '<li class="exp"><div class="row-sb"><strong>月支出 合計</strong><span class="num" id="exp-total" style="font-size:1.1rem;">0</span></div></li>';
+
+  $('#basic-list').innerHTML = BASIC.map(function (b) {
+    return swRow('data-osw', 'osw-', b.k, b.label, b.note, stepper('data-c', b.k, CST[b.k], ic[b.k], b.label), 'data-orow');
+  }).join('');
+
+  $('#opt-list').innerHTML = OPT.map(function (o) {
+    return swRow('data-osw', 'osw-', o.k, o.label, o.note, stepper('data-c', o.k, CST[o.k], ic[o.k], o.label), 'data-orow');
+  }).join('');
+
+  $('#furn-list').innerHTML = FURN.map(function (f) {
+    return swRow('data-osw', 'osw-', f.k, f.label, f.note, stepper('data-c', f.k, CST[f.k], ic[f.k], f.label), 'data-orow');
+  }).join('');
+  function syncSwitches() { Object.keys(optOn).forEach(function (k) { $('#osw-' + k).checked = optOn[k]; }); }
+  syncSwitches();
+
+  function render() {
+    var inc = r2(val.ra + val.inx + val.remit), expSum = 0, maxV = BAR_MIN_MAX;
+    EXP.forEach(function (e) { if (on[e.k]) { expSum += val[e.k]; if (val[e.k] > maxV) maxV = val[e.k]; } });
+    expSum = r2(expSum);
+    var bal = r2(inc - expSum), st = status(bal);
+
+    EXP.forEach(function (e) {
+      var li = document.querySelector('[data-row="' + e.k + '"]');
+      li.classList.toggle('off', !on[e.k]);
+      li.querySelectorAll('input.stp-i, button.stp-b').forEach(function (x) { x.disabled = !on[e.k]; });
+      li.querySelector('[data-bar]').style.width = on[e.k] ? (val[e.k] / maxV * 100) + '%' : '0%';
+    });
+    var housing = r2((on.rent ? val.rent : 0) + (on.mgmt ? val.mgmt : 0)), rb = $('#rent-badge');
+    if (!on.rent && !on.mgmt) { rb.className = 'badge b-mute'; rb.textContent = '家賃・管理費を含めていません'; }
+    else if (housing > RENT_LIMIT + 1e-9) { rb.className = 'badge b-ng'; rb.textContent = '家賃＋管理費 ' + fmt(housing) + '万円（上限7.0万円を超過）'; }
+    else { rb.className = 'badge b-ok'; rb.textContent = '家賃＋管理費 ' + fmt(housing) + '万円（上限7.0万円以内）'; }
+
+    $('#income-total').textContent = fmt(inc);
+    $('#t-income').textContent = fmt(inc);
+    $('#t-expense').textContent = fmt(expSum);
+    $('#exp-total').textContent = fmt(expSum);
+    $('#t-balance').textContent = signed(bal);
+    var sb = $('#status-badge'); sb.className = 'badge ' + st[1]; sb.textContent = st[0];
+    $('#sb-income').textContent = fmt(inc);
+    $('#sb-expense').textContent = fmt(expSum);
+    $('#sb-balance').textContent = signed(bal);
+    var sb2 = $('#sb-badge'); sb2.className = 'badge ' + st[1]; sb2.textContent = st[0];
+
+    var gm = $('#gap-msg'), gb = $('#gap-box');
+    if (bal < -0.004) { gm.textContent = '収入が' + fmt(-bal) + '万円不足しています'; gb.className = 'callout ng'; }
+    else if (bal > 0.004) { gm.textContent = '収入に' + fmt(bal) + '万円の余裕があります'; gb.className = 'callout ok'; }
+    else { gm.textContent = '収支はちょうど0です'; gb.className = 'callout'; }
+
+    var rest = r2(expSum - (on.rent ? val.rent : 0));
+    $('#scenario').innerHTML = [6.5, 7.0, 7.5].map(function (rv) {
+      return '<tr><th scope="row" style="font-size:.85rem; color:var(--ink);">' + rv.toFixed(1) + '万円</th>' +
+        [7, 8, 9].map(function (m) {
+          var b = r2(val.ra + val.inx + m - (rest + rv)), s = status(b);
+          return '<td><span class="num">' + signed(b) + '</span><span class="badge ' + s[1] + '">' + s[0] + '</span></td>';
+        }).join('') + '</tr>';
+    }).join('');
+
+    renderInit();
+  }
+
+  var BASICMAP = {};
+  BASIC.forEach(function (b) { BASICMAP[b.k] = b.sign; });
+  function renderInit() {
+    var basic = 0, o = 0, f = 0, fu = 0;
+    Object.keys(optOn).forEach(function (k) {
+      var li = document.querySelector('[data-orow="' + k + '"]');
+      li.classList.toggle('off', !optOn[k]);
+      li.querySelectorAll('input.stp-i, button.stp-b').forEach(function (x) { x.disabled = !optOn[k]; });
+      if (!optOn[k]) return;
+      if (BASICMAP[k] !== undefined) basic += BASICMAP[k] * ic[k];
+      else if (k === 'fire') f += ic[k];
+      else if (k.charAt(0) === 'g') fu += ic[k];
+      else o += ic[k];
+    });
+    basic = r2(basic); o = r2(o); f = r2(f); fu = r2(fu);
+    var total = r2(basic + o + f + fu);
+    $('#it-basic').textContent = man(basic);
+    $('#it-opt').textContent = fmt(o);
+    $('#it-fire').textContent = fmt(f);
+    $('#it-furn').textContent = fmt(fu);
+    $('#init-total').textContent = man(total);
+    $('#sb2-total').textContent = man(total);
+  }
+
+  function setVal(k, v) {
+    val[k] = Math.max(0, r2(v));
+    $('#in-' + k).value = fmt(val[k]);
+    render();
+  }
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest ? ev.target.closest('.stp-b') : null;
+    if (!b || b.disabled) return;
+    var d = Number(b.dataset.d);
+    if (b.dataset.s) { setVal(b.dataset.s, val[b.dataset.s] + d * STEP[b.dataset.s]); }
+    else if (b.dataset.c) {
+      var k = b.dataset.c;
+      ic[k] = Math.max(0, r2(ic[k] + d * CST[k]));
+      $('#ci-' + k).value = fmt(ic[k]);
+      renderInit();
+    }
+  });
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (!t.classList || !t.classList.contains('stp-i')) return;
+    var n = parseFloat(t.value); n = (isNaN(n) || n < 0) ? 0 : r2(n);
+    if (t.dataset.s) { val[t.dataset.s] = n; render(); }
+    else if (t.dataset.c) { ic[t.dataset.c] = n; renderInit(); }
+  });
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.classList && t.classList.contains('stp-i')) {
+      if (t.dataset.s) t.value = fmt(val[t.dataset.s]);
+      else if (t.dataset.c) t.value = fmt(ic[t.dataset.c]);
+    } else if (t.dataset && t.dataset.sw) { on[t.dataset.sw] = t.checked; render(); }
+    else if (t.dataset && t.dataset.osw) { optOn[t.dataset.osw] = t.checked; renderInit(); }
+  });
+
+  $('#sim-reset').addEventListener('click', function () {
+    resetSim();
+    Object.keys(val).forEach(function (k) { $('#in-' + k).value = fmt(val[k]); });
+    EXP.forEach(function (e) { $('#sw-' + e.k).checked = true; });
+    render();
+  });
+  $('#init-reset').addEventListener('click', function () {
+    resetInit();
+    Object.keys(ic).forEach(function (k) { $('#ci-' + k).value = fmt(ic[k]); });
+    syncSwitches();
+    renderInit();
+  });
+  render();
+
+/* ---------- checklist ---------- */
+  var GROUPS = [
+    ['物件探し', 'home', [
+      ['s1', '家賃が管理費込みで7.0万円以内'],
+      ['s2', '都市ガスである（プロパンは避ける）'],
+      ['s3', '矢上キャンパスまで急坂を避けるルートがある'],
+      ['s4', '徒歩または自転車で通学できる'],
+      ['s5', '洗濯機置き場が室内にある'],
+      ['s6', '光回線を導入できる'],
+      ['s7', '壁の構造など防音性に問題がない（夜間の研究に対応）'],
+      ['s8', '即決・年内入居を条件に、礼金ゼロ・フリーレントを打診した']
+    ]],
+    ['初期費用', 'tag', [
+      ['c1', '消毒施工費・室内抗菌を外した'],
+      ['c2', '害虫駆除・防虫施工を外した'],
+      ['c3', '24時間サポート・安心入居を外した'],
+      ['c4', '火災保険に緊急駆けつけが含まれている'],
+      ['c5', '火災保険が2年で1.5〜2.0万円の相場内'],
+      ['c6', '保証会社の利用条件と費用（初回保証料・更新料）を見積書で確認した']
+    ]],
+    ['家具・家電', 'sofa', [
+      ['f1', '実家から持ち込む物を決めた（布団・デスク・チェア・電子レンジ・カーテンなど）'],
+      ['f2', '先輩・後輩からの譲り受けを探した（ジモティーなど）'],
+      ['f3', '足りない分を新生活3点セット（約5万円）で検討した'],
+      ['f4', '家具家電付き物件は2年間の総額で比べた']
+    ]],
+    ['ライフライン・支払い', 'plug', [
+      ['l1', '電気・ガスを入居1週間前までに契約した（東京電力／東京ガス）'],
+      ['l2', 'ガス開栓の立ち会いを入居当日に手配した'],
+      ['l3', '水道を、物件所在地の自治体と契約した'],
+      ['l4', '家賃の支払い方法と、前払いの日程を確認した'],
+      ['l5', '変動費も含め、本人の口座から支払う運用を決めた']
+    ]]
+  ];
+  var KEY = 'rentguide-checks-v1', done = {};
+  try { (JSON.parse(localStorage.getItem(KEY) || '[]')).forEach(function (k) { done[k] = true; }); } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(Object.keys(done))); } catch (e) {} }
+  var total = GROUPS.reduce(function (s, g) { return s + g[2].length; }, 0);
+
+  $('#check-groups').innerHTML = GROUPS.map(function (g, gi) {
+    return '<div class="card"><div class="row-sb" style="margin-bottom:.4rem;"><h3 class="h-card row" style="flex-wrap:nowrap;"><span class="ico" style="width:2rem;height:2rem;">' + icon(g[1]) + '</span>' + g[0] + '</h3>' +
+      '<span class="num small" data-gcount="' + gi + '"></span></div>' +
+      g[2].map(function (it) {
+        return '<label class="chk"><input type="checkbox" id="chk-' + it[0] + '" data-k="' + it[0] + '"' + (done[it[0]] ? ' checked' : '') + '><span>' + it[1] + '</span></label>';
+      }).join('') + '</div>';
+  }).join('');
+
+  function progress() {
+    var n = Object.keys(done).length;
+    $('#prog-text').textContent = n + ' / ' + total;
+    $('#prog-text-2').textContent = n + ' / ' + total;
+    var pct = total ? (n / total * 100) + '%' : '0%';
+    $('#prog-bar').style.width = pct;
+    $('#prog-bar-head').style.width = pct;
+    GROUPS.forEach(function (g, gi) {
+      var c = g[2].filter(function (it) { return done[it[0]]; }).length;
+      document.querySelector('[data-gcount="' + gi + '"]').textContent = c + ' / ' + g[2].length;
+    });
+  }
+  document.querySelectorAll('input[data-k]').forEach(function (el) {
+    el.addEventListener('change', function () {
+      if (el.checked) done[el.dataset.k] = true; else delete done[el.dataset.k];
+      save(); progress();
+    });
+  });
+  $('#reset-checks').addEventListener('click', function () {
+    done = {};
+    document.querySelectorAll('input[data-k]').forEach(function (el) { el.checked = false; });
+    save(); progress();
+  });
+  progress();
+})();
+</script>
+</body>
+</html>
