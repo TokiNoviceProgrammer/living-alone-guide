@@ -228,7 +228,6 @@
     <div class="stack" style="gap: .5rem;">
       <p class="eyebrow">大学院生の一人暮らし検討用</p>
       <h1>一人暮らし賃貸ガイド</h1>
-      <p class="lead">賃貸契約から入居準備までの判断基準と、月々のお金の運用方針をまとめた保存版です。</p>
     </div>
     <div class="facts">
       <span class="fact"><svg class="ic"><use href="#i-yen"/></svg>家賃上限 7.0万円（管理費込）</span>
@@ -247,8 +246,8 @@
   <div class="wrap">
     <div class="tabs" role="tablist" aria-label="ガイドの章">
       <button class="tab" role="tab" id="t-overview" aria-controls="p-overview" aria-selected="true" data-tab="overview"><svg class="ic"><use href="#i-wallet"/></svg>収支</button>
-      <button class="tab" role="tab" id="t-search" aria-controls="p-search" aria-selected="false" data-tab="search"><svg class="ic"><use href="#i-home"/></svg>物件探し</button>
       <button class="tab" role="tab" id="t-initial" aria-controls="p-initial" aria-selected="false" data-tab="initial"><svg class="ic"><use href="#i-tag"/></svg>初期費用</button>
+      <button class="tab" role="tab" id="t-search" aria-controls="p-search" aria-selected="false" data-tab="search"><svg class="ic"><use href="#i-home"/></svg>物件探し</button>
       <button class="tab" role="tab" id="t-furniture" aria-controls="p-furniture" aria-selected="false" data-tab="furniture"><svg class="ic"><use href="#i-sofa"/></svg>家具家電</button>
       <button class="tab" role="tab" id="t-lifeline" aria-controls="p-lifeline" aria-selected="false" data-tab="lifeline"><svg class="ic"><use href="#i-plug"/></svg>ライフライン</button>
       <button class="tab" role="tab" id="t-checklist" aria-controls="p-checklist" aria-selected="false" data-tab="checklist"><svg class="ic"><use href="#i-list"/></svg>チェック</button>
@@ -297,28 +296,6 @@
         </div>
       </div>
 
-      <div class="card stack" style="gap:.75rem;">
-        <div class="row-sb"><h3 class="h-card">シナリオ早見表（家賃 × 仕送り）</h3><span class="badge b-mute">試算</span></div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th scope="col">家賃（管理費は別）</th><th scope="col">仕送り 7万円</th><th scope="col">仕送り 8万円</th><th scope="col">仕送り 9万円</th></tr></thead>
-            <tbody id="scenario"></tbody>
-          </table>
-        </div>
-        <p class="small">家賃以外は上の現在値で計算しています（単位：万円）。</p>
-      </div>
-
-      <div class="callout">
-        <div class="item">
-          <span class="ico"><svg class="ic"><use href="#i-alert"/></svg></span>
-          <div class="stack" style="gap:.35rem;">
-            <h3 class="h-card">初期値での収支</h3>
-            <p>仕送り8.5万円・家賃7.0万円・管理費0.3万円のとき、0.4万円の余裕があります。仕送り7万円なら1.1万円不足、8万円なら0.1万円不足（ほぼ均衡）です。</p>
-            <p class="small">家賃と管理費の合計は7.3万円で、物件探しの上限（管理費込み7.0万円）を0.3万円超えています。</p>
-          </div>
-        </div>
-      </div>
-
       <div class="sumbar" aria-live="polite">
         <span class="row" style="gap:.4rem 1rem;">
           <span><span class="sub">収入</span> <span class="num" id="sb-income">18.5</span></span>
@@ -335,7 +312,7 @@
     <div class="stack">
       <div class="stack" style="gap:.4rem;">
         <h2 class="h-sec">物件探し・内見のチェックポイント</h2>
-        <p class="lead">日吉・元住吉エリアで内見するときの判断基準です。</p>
+        <p class="lead">内見するときの判断基準です。</p>
       </div>
       <div class="cards">
         <article class="card item">
@@ -349,19 +326,19 @@
           <p>プロパンガスは月 <span class="num">2,000〜3,000円</span> 高くなります。</p></div>
         </article>
         <article class="card item">
-          <span class="ico"><svg class="ic"><use href="#i-mountain"/></svg></span>
-          <div><div class="row"><h3 class="h-card">アクセス・立地</h3><span class="badge b-warn">現地確認</span></div>
-          <p>矢上キャンパス周辺の「急坂」を避けるルートがあるか確認します。徒歩・自転車で通学できるかも見ます。</p></div>
+          <span class="ico"><svg class="ic"><use href="#i-route"/></svg></span>
+          <div><div class="row"><h3 class="h-card">大学へのアクセス</h3><span class="badge b-warn">片道30分前後以内</span></div>
+          <p>実際の通学手段（徒歩・自転車・電車）で、片道30分前後以内に着くかを確認します。坂が多い道は、体力的な負担も見ます。</p></div>
+        </article>
+        <article class="card item">
+          <span class="ico"><svg class="ic"><use href="#i-box"/></svg></span>
+          <div><div class="row"><h3 class="h-card">周辺の生活環境</h3><span class="badge b-warn">現地確認</span></div>
+          <p>近くにスーパー、ドラッグストア、コンビニなど、生活に必要な店があるかを確認します。営業時間も見ておきます。</p></div>
         </article>
         <article class="card item">
           <span class="ico"><svg class="ic"><use href="#i-washer"/></svg></span>
-          <div><div class="row"><h3 class="h-card">洗濯機置き場</h3><span class="badge b-warn">確認</span></div>
-          <p>室内に置き場があること。</p></div>
-        </article>
-        <article class="card item">
-          <span class="ico"><svg class="ic"><use href="#i-wifi"/></svg></span>
-          <div><div class="row"><h3 class="h-card">光回線</h3><span class="badge b-warn">確認</span></div>
-          <p>光回線を導入できるか。個別Wi-Fiは月 <span class="num">0.45万円</span> を見込んでいます。</p></div>
+          <div><div class="row"><h3 class="h-card">設備</h3><span class="badge b-warn">確認</span></div>
+          <p>洗濯機置き場が室内にあること。光回線を導入できること（個別Wi-Fiは月 <span class="num">0.45万円</span> を見込んでいます）。</p></div>
         </article>
         <article class="card item">
           <span class="ico"><svg class="ic"><use href="#i-sound"/></svg></span>
@@ -558,12 +535,7 @@
         <article class="card item">
           <span class="ico"><svg class="ic"><use href="#i-droplet"/></svg></span>
           <div><div class="row"><h3 class="h-card">水道</h3><span class="badge b-ok">立ち会い不要</span></div>
-          <p class="small">地域の自治体（横浜市水道局など）と契約します。</p></div>
-        </article>
-        <article class="card item">
-          <span class="ico"><svg class="ic"><use href="#i-alert"/></svg></span>
-          <div><div class="row"><h3 class="h-card">水道局は住所で変わります</h3><span class="badge b-warn">補足</span></div>
-          <p class="small">日吉は横浜市、元住吉は川崎市の区域です。契約先は物件の所在地で確認してください。</p></div>
+          <p class="small">物件の所在地の自治体（水道局）と契約します。契約先は物件ごとに違うので、住所で確認してください。</p></div>
         </article>
       </div>
 
@@ -791,15 +763,6 @@
     else if (bal > 0.004) { gm.textContent = '収入に' + fmt(bal) + '万円の余裕があります'; gb.className = 'callout ok'; }
     else { gm.textContent = '収支はちょうど0です'; gb.className = 'callout'; }
 
-    var rest = r2(expSum - (on.rent ? val.rent : 0));
-    $('#scenario').innerHTML = [6.5, 7.0, 7.5].map(function (rv) {
-      return '<tr><th scope="row" style="font-size:.85rem; color:var(--ink);">' + rv.toFixed(1) + '万円</th>' +
-        [7, 8, 9].map(function (m) {
-          var b = r2(val.ra + val.inx + m - (rest + rv)), s = status(b);
-          return '<td><span class="num">' + signed(b) + '</span><span class="badge ' + s[1] + '">' + s[0] + '</span></td>';
-        }).join('') + '</tr>';
-    }).join('');
-
     renderInit();
   }
 
@@ -880,8 +843,8 @@
     ['物件探し', 'home', [
       ['s1', '家賃が管理費込みで7.0万円以内'],
       ['s2', '都市ガスである（プロパンは避ける）'],
-      ['s3', '矢上キャンパスまで急坂を避けるルートがある'],
-      ['s4', '徒歩または自転車で通学できる'],
+      ['s3', '大学まで片道30分前後以内で通える'],
+      ['s4', '近くにスーパーなど、生活に必要な店がある'],
       ['s5', '洗濯機置き場が室内にある'],
       ['s6', '光回線を導入できる'],
       ['s7', '壁の構造など防音性に問題がない（夜間の研究に対応）'],
