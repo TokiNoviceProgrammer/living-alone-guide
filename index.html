@@ -230,7 +230,7 @@
       <h1>一人暮らし賃貸ガイド</h1>
     </div>
     <div class="facts">
-      <span class="fact"><svg class="ic"><use href="#i-yen"/></svg>家賃上限 7.0万円（管理費込）</span>
+      <span class="fact"><svg class="ic"><use href="#i-yen"/></svg>家賃の目安 7.0万円前後（管理費込）</span>
       <span class="fact"><svg class="ic"><use href="#i-flame"/></svg>都市ガス必須</span>
       <span class="fact"><svg class="ic"><use href="#i-sofa"/></svg>家具家電の目標 0〜8万円</span>
     </div>
@@ -317,8 +317,8 @@
       <div class="cards">
         <article class="card item">
           <span class="ico"><svg class="ic"><use href="#i-yen"/></svg></span>
-          <div><div class="row"><h3 class="h-card">家賃上限</h3><span class="badge b-info">上限</span></div>
-          <p>家賃と管理費の合計で <span class="num">7.0万円</span> 以内。収支シミュレーターでは家賃と管理費を分けて入力できます。</p></div>
+          <div><div class="row"><h3 class="h-card">家賃の目安</h3><span class="badge b-info">目安</span></div>
+          <p>家賃と管理費の合計で <span class="num">7.0万円</span> 前後。収支シミュレーターでは家賃と管理費を分けて入力できます。</p></div>
         </article>
         <article class="card item">
           <span class="ico"><svg class="ic"><use href="#i-flame"/></svg></span>
@@ -624,7 +624,7 @@
     { k: 'inx', label: 'その他（アルバイトなど）', v: 0, icon: 'yen' }
   ];
   var EXP = [
-    { k: 'rent', label: '家賃', v: 7.0, icon: 'home', note: '家賃＋管理費の上限は7.0万円' },
+    { k: 'rent', label: '家賃', v: 7.0, icon: 'home', note: '家賃＋管理費の目安は7.0万円前後' },
     { k: 'mgmt', label: '管理費', v: 0.3, icon: 'key', note: '' },
     { k: 'util', label: '水道・電気・ガス', v: 1.25, icon: 'bolt', note: '都市ガス必須' },
     { k: 'wifi', label: '個別Wi-Fi', v: 0.45, icon: 'wifi', note: '' },
@@ -634,7 +634,7 @@
     { k: 'other', label: 'その他（日用品・娯楽・予備費）', v: 1.5, icon: 'box', note: '' },
     { k: 'buf', label: '予備費', v: 2.0, icon: 'shield', note: '' }
   ];
-  var RENT_LIMIT = 7.0, BAR_MIN_MAX = 8;
+  var BAR_MIN_MAX = 8;
   var val = {}, on = {};
   function resetSim() {
     val = {}; on = {};
@@ -744,8 +744,7 @@
     });
     var housing = r2((on.rent ? val.rent : 0) + (on.mgmt ? val.mgmt : 0)), rb = $('#rent-badge');
     if (!on.rent && !on.mgmt) { rb.className = 'badge b-mute'; rb.textContent = '家賃・管理費を含めていません'; }
-    else if (housing > RENT_LIMIT + 1e-9) { rb.className = 'badge b-ng'; rb.textContent = '家賃＋管理費 ' + fmt(housing) + '万円（上限7.0万円を超過）'; }
-    else { rb.className = 'badge b-ok'; rb.textContent = '家賃＋管理費 ' + fmt(housing) + '万円（上限7.0万円以内）'; }
+    else { rb.className = 'badge b-info'; rb.textContent = '家賃＋管理費 ' + fmt(housing) + '万円（目安 7.0万円前後）'; }
 
     $('#income-total').textContent = fmt(inc);
     $('#t-income').textContent = fmt(inc);
@@ -841,7 +840,7 @@
 /* ---------- checklist ---------- */
   var GROUPS = [
     ['物件探し', 'home', [
-      ['s1', '家賃が管理費込みで7.0万円以内'],
+      ['s1', '家賃が管理費込みで7.0万円前後'],
       ['s2', '都市ガスである（プロパンは避ける）'],
       ['s3', '大学まで片道30分前後以内で通える'],
       ['s4', '近くにスーパーなど、生活に必要な店がある'],
